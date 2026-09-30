@@ -22,7 +22,6 @@ Recinto:
   admissible_vars:
     - zonas
     - servicios
-    - direccion_loc
   unique_indexes:
     - nombre
   regular_indexes:
@@ -66,7 +65,6 @@ Asistente:
     - direccion
   admissible_vars:
     - preferenciasGenero
-    - direccion_loc
   unique_indexes:
     - correoElectronico
   regular_indexes:

@@ -249,7 +249,18 @@ class Model:
         # Ojo con el índice geoespacial: save() guarda el GeoJSON Point en
         # <campo>_loc, luego el índice 2dsphere va sobre <campo>_loc, mientras
         # que _location_var debe guardar el nombre del campo base.
+        for nombreIndice, atributos in indexes.items():
+            if(nombreIndice == "unique_indexes"):
+                for atributo in atributos:
+                    db_collection.create_index([(atributo, 1)], unique=True)
+            elif(nombreIndice == "regular_indexes"):
+                for atributo in atributos:
+                    db_collection.create_index([(atributo, 1)])
+            elif(nombreIndice == "location_index"):
+                for atributo in atributos:
+                    db_collection.create_index([(atributo+"_loc", "2dsphere")])
 
+            
 
 class ModelCursor:
     """ 
