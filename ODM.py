@@ -316,18 +316,41 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
     """
     #TODO
     # Inicializar base de datos
+    cliente = MongoClient(mongodb_uri)
+    db = cliente[db_name]
 
     #TODO
     # Declarar tantas clases modelo colecciones existan en la base de datos
     # Leer el fichero de definiciones de modelos para obtener las colecciones,
     # indices y los atributos admitidos y requeridos para cada una de ellas.
     # Ejemplo de declaracion de modelo para colecion llamada MiModelo
-    scope["MiModelo"] = type("MiModelo", (Model,),{})
-    # La clase se declara en tiempo de ejecucion y queda en scope, que no tiene
-    # por que ser el espacio de nombres global: las pruebas le pasan su propio
-    # diccionario. Por eso se inicializa a traves de scope y no por su nombre,
-    # que ahi todavia no existe.
-    scope["MiModelo"].init_class(db_collection=None, indexes=None, required_vars=None, admissible_vars=None)
+    # scope["MiModelo"] = type("MiModelo", (Model,),{})
+
+    try:
+        # Abro el archivo de definiciones en modo lectura con r
+        with open(definitions_path, 'r') as archivoModels:
+            # yaml.safe_load transforma el texto del YAML en un diccionario de Python
+            definiciones = yaml.safe_load(archivoModels)
+
+            for nombre_Modelo, atributos in definiciones.items():
+                scope[nombre_Modelo] = type(nombre_Modelo, (Model,), {})
+
+                indices = {
+                    "unique_indexes" : atributos.get("unique_indexes", []),
+                    "regular_indexes": atributos.get("regular_indexes", []),
+                    "location_indexes" : atributos.get("location_indexes", None)
+                }
+
+                # La clase se declara en tiempo de ejecucion y queda en scope, que no tiene
+                # por que ser el espacio de nombres global: las pruebas le pasan su propio
+                # diccionario. Por eso se inicializa a traves de scope y no por su nombre,
+                # que ahi todavia no existe.
+                #scope["MiModelo"].init_class(db_collection=None, indexes=None, required_vars=None, admissible_vars=None)    
+                scope[nombre_Modelo].init_class(db_collection=db[nombre_Modelo], indexes=indices, required_vars=atributos.get("required_vars", []), admissible_vars=atributos.get("admissible_vars", []))
+    except Exception as e:
+        print(f"Error al procesar el archivo: {e}")
+        return
+
 
 if __name__ == '__main__':
     
