@@ -17,7 +17,7 @@
 Recinto:
   required_vars:
     - nombre
-    - direccion
+    - address
     - aforoTotal
   admissible_vars:
     - zonas
@@ -26,7 +26,7 @@ Recinto:
     - nombre
   regular_indexes:
     - aforoTotal
-  location_index: direccion
+  location_index: address
 
 Artista:
   required_vars:
@@ -62,11 +62,11 @@ Asistente:
     - nombre
     - correoElectronico
     - fechaAlta
-    - direccion
+    - address
   admissible_vars:
     - preferenciasGenero
   unique_indexes:
     - correoElectronico
   regular_indexes:
     - fechaAlta
-  location_index: direccion
+  location_index: address
