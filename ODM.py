@@ -112,7 +112,7 @@ class Model:
         # Realizar las comprabociones y gestiones necesarias
         # antes de la asignacion.
     
-        vars_set = self._required_vars.add(self._admissible_vars)
+        vars_set = self._required_vars.union(self._admissible_vars)
     
         if(not self._required_vars.issubset(set(kwargs.keys()))):
             raise ValueError(f"Las variables {set(self._required_vars).difference(set(kwargs.keys()))} no se han proporcionado.")
@@ -180,9 +180,9 @@ class Model:
             self._data[f"{self._location_var}_loc"] = getLocationPoint(self._data[self._location_var])
 
         if("_id" in self._data):
-            self._db.replaceOne({"_id": self._data["_id"]}, self._data)
+            self._db.replace_one({"_id": self._data["_id"]}, self._data)
         else:
-            self._db.insertOne(self._data)
+            self._db.insert_one(self._data)
 
     def delete(self) -> None:
         """
@@ -271,8 +271,8 @@ class Model:
                 Set de atributos admitidos por el modelo
         """
         cls._db = db_collection
-        cls._required_vars = required_vars
-        cls._admissible_vars = admissible_vars
+        cls._required_vars = set(required_vars) if required_vars else set()
+        cls._admissible_vars = set(admissible_vars) if admissible_vars else set()
         # Recorrer indexes y crear cada índice segun su tipo: 'unique', 'asc'
         # y 'geosphere'. Comparar el tipo por igualdad, no con el operador 'in'.
         # Ojo con el índice geoespacial: save() guarda el GeoJSON Point en
@@ -288,6 +288,7 @@ class Model:
             elif(nombreIndice == "location_index"):
                 for atributo in atributos:
                     db_collection.create_index([(atributo+"_loc", "2dsphere")])
+                    cls._location_var = atributo
 
             
 
