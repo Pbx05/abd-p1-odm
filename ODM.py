@@ -179,9 +179,9 @@ class Model:
             self._data[f"{self._location_var}_loc"] = getLocationPoint(self._data[self._location_var])
 
         if("_id" in self._data):
-            self._db.replaceOne({"_id": self._data["_id"]}, self._data)
+            self._db.replace_one({"_id": self._data["_id"]}, self._data)
         else:
-            self._db.insertOne(self._data)
+            self._db.insert_one(self._data)
 
     def delete(self) -> None:
         """
@@ -284,11 +284,10 @@ class Model:
             elif(nombreIndice == "regular_indexes"):
                 for atributo in atributos:
                     db_collection.create_index([(atributo, 1)])
-            elif(nombreIndice == "location_indexes"):
-                if atributos:
-                    for atributo in atributos:
-                        cls._location_var = atributo
-                        db_collection.create_index([(atributo + "_loc", "2dsphere")])
+            elif(nombreIndice == "location_index"):
+                for atributo in atributos:
+                    db_collection.create_index([(atributo+"_loc", "2dsphere")])
+                    cls._location_var = atributo
 
             
 
