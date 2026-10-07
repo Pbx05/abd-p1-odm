@@ -35,19 +35,22 @@ def getLocationPoint(address: str) -> Point:
         intentos += 1
         try:
             time.sleep(1)
-            #TODO
             # Es necesario proporcionar un user_agent para utilizar la API
             # Utilizar un nombre aleatorio para el user_agent
-            location = Nominatim(user_agent="Mi-Nombre-Aleatorio").geocode(address)
+            location = Nominatim(user_agent="RafaCM").geocode(address)
         except GeocoderTimedOut:
             # Puede lanzar una excepcion si se supera el tiempo de espera
             # Volver a intentarlo
             continue
-    #TODO
+    if(location is not None):
+        return Point(location.latitude, location.longitude)
+    else:
+        raise ValueError("La dirección no se ha podido geolocalizar")
     # Devolver un GeoJSON de tipo punto con la latitud y longitud almacenadas.
     # Si no se consiguieron coordenadas, lanzar ValueError: la funcion no puede
     # devolver un punto inventado ni None silenciosamente. Es lo que espera la
     # prueba test_get_location_point_timeout_failure.
+
 
 class Model:
     """ 
@@ -99,17 +102,27 @@ class Model:
         Inicializa el modelo con los valores proporcionados en kwargs
         Comprueba que los valores proporcionados en kwargs son admitidos
         por el modelo y que las atributos requeridos son proporcionadas.
-
+    
         Parameters
         ----------
             kwargs : dict[str, str | dict]
-                diccionario con los valores de las atributos del modelo
+                    diccionario con los valores de las atributos del modelo
         """
         self._data: dict[str, str | dict | list] = {}
-        #TODO
         # Realizar las comprabociones y gestiones necesarias
         # antes de la asignacion.
-
+    
+        vars_set = self._required_vars.add(self._admissible_vars)
+    
+        if(not self._required_vars.issubset(set(kwargs.keys()))):
+            raise ValueError(f"Las variables {set(self._required_vars).difference(set(kwargs.keys()))} no se han proporcionado.")
+    
+        if(not set(kwargs.keys()).issubset(vars_set)):
+            raise ValueError(f"{set(kwargs.keys()).difference(vars_set)} no son variables de este modelo.")
+    
+        #TODO: Valores admitidos??
+                    
+    
         # Asigna todos los valores en kwargs a las atributos con 
         # nombre las claves en kwargs
         # Utilizamos el atributo data para guardar los variables 
@@ -126,10 +139,13 @@ class Model:
         if name in self._internal_vars:
             super().__setattr__(name, value)
             return
+            
         #TODO
         # Realizar las comprabociones y gestiones necesarias
         # antes de la asignacion.
-
+        if(name not in self._admissible_vars and name not in self._required_vars):
+            raise ValueError(f"La variable {name} no existe.")
+    
         # Asigna el valor value a la variable name
         self._data[name] = value
 
