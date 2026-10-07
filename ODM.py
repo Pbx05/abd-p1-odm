@@ -183,7 +183,9 @@ class Model:
         if(self._location_var and self._location_var in self._data):
             self._data[f"{self._location_var}_loc"] = getLocationPoint(self._data[self._location_var])
 
-        if("_id" in self._data):
+        
+        #Si el objeto ya existe
+        if("_id" in self._data and self._data["_id"] is not None):
             self._db.replace_one({"_id": self._data["_id"]}, self._data)
         else:
             self._db.insert_one(self._data)
@@ -411,30 +413,34 @@ if __name__ == '__main__':
     # Inicializar base de datos y modelos con initApp
     initApp()
 
-    #Ejemplo
-    m = MiModelo(nombre="Pablo", apellido="Ramos", edad=18)
-    m.save()
-    m.nombre="Pedro"
-    print(m.nombre)
-
     # Hacer pruebas para comprobar que funciona correctamente el modelo
-    #TODO
+    
     # Crear modelo
+    pepe = Artista(nombre="Pepe", generos = ["Rock"], paisOrigen = "Portugal")
 
     # Asignar nuevo valor a variable admitida del objeto 
+    pepe.paisOrigen = "España"
 
     # Asignar nuevo valor a variable no admitida del objeto 
+    #pepe.ciudadOrigen = "Madrid"
 
     # Guardar
+    pepe.save()
 
     # Asignar nuevo valor a variable admitida del objeto
+    pepe.paisOrigen = "Francia"
 
     # Guardar
+    pepe.save()
 
     # Buscar nuevo documento con find
+    artistas = Artista.find({"nombre":"Pepe"})
 
     # Obtener primer documento
+    artista = next(iter(artistas), None)
 
     # Modificar valor de variable admitida
+    artista.paisOrigen = "España"
 
     # Guardar
+    artista.save()
