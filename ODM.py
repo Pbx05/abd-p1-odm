@@ -113,6 +113,11 @@ class Model:
         # antes de la asignacion.
     
         vars_set = self._required_vars | self._admissible_vars
+
+        vars_set.add("_id")
+        
+        if self._location_var:
+            vars_set.add(f"{self._location_var}_loc")
     
         if(not self._required_vars.issubset(set(kwargs.keys()))):
             raise ValueError(f"Las variables {set(self._required_vars).difference(set(kwargs.keys()))} no se han proporcionado.")
@@ -208,9 +213,10 @@ class Model:
             ModelCursor
                 cursor de modelos
         """ 
-        #TODO
+
         # cls es el puntero a la clase
-        pass #No olvidar eliminar esta linea una vez implementado
+        cursor_pymongo = cls._db.find(filter)
+        return ModelCursor(cls, cursor_pymongo)
 
     @classmethod
     def aggregate(cls, pipeline: list[dict]) -> pymongo.command_cursor.CommandCursor:
