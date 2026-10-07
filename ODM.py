@@ -284,10 +284,16 @@ class Model:
             elif(nombreIndice == "regular_indexes"):
                 for atributo in atributos:
                     db_collection.create_index([(atributo, 1)])
-            elif(nombreIndice == "location_index"):
-                for atributo in atributos:
-                    db_collection.create_index([(atributo+"_loc", "2dsphere")])
-                    cls._location_var = atributo
+            elif(nombreIndice == "location_indexes"):
+                if atributos:
+                    if isinstance(atributos, str):
+                        atributos = [atributos]
+
+                    for atributo in atributos:
+                        db_collection.create_index(
+                            [(atributo + "_loc", "2dsphere")]
+                        )
+                        cls._location_var = atributo
 
             
 
@@ -371,14 +377,16 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
             # yaml.safe_load transforma el texto del YAML en un diccionario de Python
             definiciones = yaml.safe_load(archivoModels)
 
+
             for nombre_Modelo, atributos in definiciones.items():
                 scope[nombre_Modelo] = type(nombre_Modelo, (Model,), {})
 
                 indices = {
                     "unique_indexes" : atributos.get("unique_indexes", []),
                     "regular_indexes": atributos.get("regular_indexes", []),
-                    "location_indexes" : atributos.get("location_indexes", None)
+                    "location_indexes" : atributos.get("location_index", None)
                 }
+
 
                 # La clase se declara en tiempo de ejecucion y queda en scope, que no tiene
                 # por que ser el espacio de nombres global: las pruebas le pasan su propio
@@ -386,6 +394,7 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
                 # que ahi todavia no existe.
                 #scope["MiModelo"].init_class(db_collection=None, indexes=None, required_vars=None, admissible_vars=None)    
                 scope[nombre_Modelo].init_class(db_collection=db[nombre_Modelo], indexes=indices, required_vars=atributos.get("required_vars", []), admissible_vars=atributos.get("admissible_vars", []))
+
     except Exception as e:
         print(f"Error al procesar el archivo: {e}")
         return
