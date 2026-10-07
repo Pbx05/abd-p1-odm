@@ -112,7 +112,7 @@ class Model:
         # Realizar las comprabociones y gestiones necesarias
         # antes de la asignacion.
     
-        vars_set = self._required_vars.add(self._admissible_vars)
+        vars_set = self._required_vars | self._admissible_vars
     
         if(not self._required_vars.issubset(set(kwargs.keys()))):
             raise ValueError(f"Las variables {set(self._required_vars).difference(set(kwargs.keys()))} no se han proporcionado.")
@@ -120,7 +120,6 @@ class Model:
         if(not set(kwargs.keys()).issubset(vars_set)):
             raise ValueError(f"{set(kwargs.keys()).difference(vars_set)} no son variables de este modelo.")
     
-        #TODO: Valores admitidos??
                     
     
         # Asigna todos los valores en kwargs a las atributos con 
@@ -191,7 +190,7 @@ class Model:
         if(self._data["_id"] is None):
             raise ValueError("El modelo no existe en la base de datos.")
         
-        self._db.deleteOne( {"_id":self._data["_id"]} )
+        self._db.delete_one( {"_id":self._data["_id"]} )
     
     @classmethod
     def find(cls, filter: dict[str, str | dict]) -> Any:
@@ -271,8 +270,8 @@ class Model:
                 Set de atributos admitidos por el modelo
         """
         cls._db = db_collection
-        cls._required_vars = required_vars
-        cls._admissible_vars = admissible_vars
+        cls._required_vars = set(required_vars)
+        cls._admissible_vars = set(admissible_vars)
         # Recorrer indexes y crear cada índice segun su tipo: 'unique', 'asc'
         # y 'geosphere'. Comparar el tipo por igualdad, no con el operador 'in'.
         # Ojo con el índice geoespacial: save() guarda el GeoJSON Point en
@@ -285,9 +284,11 @@ class Model:
             elif(nombreIndice == "regular_indexes"):
                 for atributo in atributos:
                     db_collection.create_index([(atributo, 1)])
-            elif(nombreIndice == "location_index"):
-                for atributo in atributos:
-                    db_collection.create_index([(atributo+"_loc", "2dsphere")])
+            elif(nombreIndice == "location_indexes"):
+                if atributos:
+                    for atributo in atributos:
+                        cls._location_var = atributo
+                        db_collection.create_index([(atributo + "_loc", "2dsphere")])
 
             
 
