@@ -1,5 +1,5 @@
 __author__ = 'Pablo Ramos Criado'
-__students__ = 'Nombres_y_Apellidos'
+__students__ = 'Pablo_Alferez_Serrano__Rafael_Ceres_Martinez'
 
 
 from geopy.geocoders import Nominatim
@@ -43,9 +43,9 @@ def getLocationPoint(address: str) -> Point:
             # Volver a intentarlo
             continue
     if(location is not None):
-        return Point(location.latitude, location.longitude)
+        return Point((location.longitude, location.latitude))
     else:
-        raise ValueError("La dirección no se ha podido geolocalizar")
+        raise ValueError("No se pudieron obtener coordenadas")
     # Devolver un GeoJSON de tipo punto con la latitud y longitud almacenadas.
     # Si no se consiguieron coordenadas, lanzar ValueError: la funcion no puede
     # devolver un punto inventado ni None silenciosamente. Es lo que espera la
@@ -139,12 +139,17 @@ class Model:
         if name in self._internal_vars:
             super().__setattr__(name, value)
             return
-            
-        #TODO
+        
         # Realizar las comprabociones y gestiones necesarias
         # antes de la asignacion.
         if(name not in self._admissible_vars and name not in self._required_vars):
             raise ValueError(f"La variable {name} no existe.")
+
+        #Si la variable es de localización, crea la variable loc y la asigna
+        if(self._location_var and name == self._location_var):
+            coords = getLocationPoint(value)
+            name_loc = f"{name}_loc"
+            self._data[name_loc] = coords
     
         # Asigna el valor value a la variable name
         self._data[name] = value
@@ -176,8 +181,10 @@ class Model:
         """
         Elimina el modelo de la base de datos
         """
-        #TODO
-        pass
+        if(self._data["_id"] is None):
+            raise ValueError("El modelo no existe en la base de datos.")
+        
+        self._db.deleteOne( {"_id":self._data["_id"]} )
     
     @classmethod
     def find(cls, filter: dict[str, str | dict]) -> Any:
@@ -259,7 +266,6 @@ class Model:
         cls._db = db_collection
         cls._required_vars = required_vars
         cls._admissible_vars = admissible_vars
-        # TODO
         # Recorrer indexes y crear cada índice segun su tipo: 'unique', 'asc'
         # y 'geosphere'. Comparar el tipo por igualdad, no con el operador 'in'.
         # Ojo con el índice geoespacial: save() guarda el GeoJSON Point en
@@ -320,8 +326,9 @@ class ModelCursor:
         Utilizar la funcion next para obtener el siguiente documento del cursor
         Utilizar alive para comprobar si existen mas documentos.
         """
-        #TODO
-        pass #No olvidar eliminar esta linea una vez implementado
+        while(self.cursor.alive):
+            doc = next(self.cursor)
+            yield self.model(**doc)
 
 
 def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://localhost:27017/", db_name="abd", scope=globals()) -> None:
@@ -341,12 +348,10 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
         db_name : str
             nombre de la base de datos
     """
-    #TODO
     # Inicializar base de datos
     cliente = MongoClient(mongodb_uri)
     db = cliente[db_name]
 
-    #TODO
     # Declarar tantas clases modelo colecciones existan en la base de datos
     # Leer el fichero de definiciones de modelos para obtener las colecciones,
     # indices y los atributos admitidos y requeridos para cada una de ellas.
@@ -382,7 +387,6 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
 if __name__ == '__main__':
     
     # Inicializar base de datos y modelos con initApp
-    #TODO
     initApp()
 
     #Ejemplo
