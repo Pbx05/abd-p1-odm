@@ -169,8 +169,15 @@ class Model:
         actualiza el documento existente con los nuevos valores del
         modelo.
         """
-        #TODO
-        pass #No olvidar eliminar esta linea una vez implementado
+
+        # Aqui lo que hago es comprobar si existe una variable de localizacion en el modelo y si existe lo convierto a coordenadas con el getLocationPoint
+        if(self._location_var and self._location_var in self._data):
+            self._data[f"{self._location_var}_loc"] = getLocationPoint(self._data[self._location_var])
+
+        if("_id" in self._data):
+            self._db.replaceOne({"_id": self._data["_id"]}, self._data)
+        else:
+            self._db.insertOne(self._data)
 
     def delete(self) -> None:
         """
